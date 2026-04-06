@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const admin_controller_1 = require("./admin.controller");
+const auth_middleware_1 = require("../../middlewares/auth.middleware");
+const role_middleware_1 = require("../../middlewares/role.middleware");
+const multer_1 = require("../../config/upload/multer");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_1.authMiddleware);
+router.use((0, role_middleware_1.requireRole)("ADMIN"));
+router.get("/dashboard", admin_controller_1.getDashboard);
+router.get("/trainers", admin_controller_1.getTrainers);
+router.post("/trainers", admin_controller_1.createTrainer);
+router.patch("/trainers/:id/status", admin_controller_1.toggleTrainerStatus);
+router.post("/trainers/:id/logo", multer_1.upload.single("logo"), admin_controller_1.uploadTrainerLogo);
+exports.default = router;

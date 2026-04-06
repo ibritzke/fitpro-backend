@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const exercises_controller_1 = require("./exercises.controller");
+const auth_middleware_1 = require("../../middlewares/auth.middleware");
+const role_middleware_1 = require("../../middlewares/role.middleware");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_1.authMiddleware);
+router.use((0, role_middleware_1.requireRole)("TRAINER", "ADMIN"));
+router.get("/", exercises_controller_1.getExercises);
+router.post("/", exercises_controller_1.createExercise);
+router.put("/:id", exercises_controller_1.updateExercise);
+router.delete("/:id", exercises_controller_1.deleteExercise);
+exports.default = router;

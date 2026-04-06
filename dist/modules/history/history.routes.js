@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const history_controller_1 = require("./history.controller");
+const auth_middleware_1 = require("../../middlewares/auth.middleware");
+const router = (0, express_1.Router)();
+router.use(auth_middleware_1.authMiddleware);
+router.post("/", history_controller_1.saveHistory);
+router.post("/weight", history_controller_1.updateWeight);
+router.get("/last-weights/:studentId", history_controller_1.getLastWeights);
+router.get("/:studentId", history_controller_1.getStudentHistory);
+exports.default = router;
