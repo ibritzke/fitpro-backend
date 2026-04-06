@@ -1,0 +1,187 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TRAINER
+  STUDENT
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  password  String
+  role      Role
+  tenantId  String?
+  status    Status    @default(ACTIVE)
+  photoUrl  String?
+  logoUrl   String?
+  lastLogin DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  students         Student[]         @relation("TrainerStudents")
+  categories       Category[]
+  subcategories    Subcategory[]
+  exercises        Exercise[]
+  workoutTypes     WorkoutType[]
+  workoutTemplates WorkoutTemplate[]
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String
+  trainerId String
+  trainer   User     @relation(fields: [trainerId], references: [id])
+
+  subcategories Subcategory[]
+  exercises     Exercise[]
+
+  createdAt DateTime @default(now())
+}
+
+model Subcategory {
+  id         String   @id @default(uuid())
+  name       String
+  categoryId String
+  trainerId  String
+  category   Category @relation(fields: [categoryId], references: [id])
+  trainer    User     @relation(fields: [trainerId], references: [id])
+
+  exercises Exercise[]
+
+  createdAt DateTime @default(now())
+}
+
+model Exercise {
+  id            String      @id @default(uuid())
+  name          String
+  categoryId    String
+  subcategoryId String?
+  trainerId     String
+
+  category    Category     @relation(fields: [categoryId], references: [id])
+  subcategory Subcategory? @relation(fields: [subcategoryId], references: [id])
+  trainer     User         @relation(fields: [trainerId], references: [id])
+
+  workoutTypeExercises    WorkoutTypeExercise[]
+  templateExercises       WorkoutTemplateExercise[]
+
+  createdAt DateTime @default(now())
+}
+
+model WorkoutType {
+  id        String @id @default(uuid())
+  name      String
+  trainerId String
+  trainer   User   @relation(fields: [trainerId], references: [id])
+
+  exercises   WorkoutTypeExercise[]
+  studentDays StudentWorkoutDay[]
+
+  createdAt DateTime @default(now())
+}
+
+model WorkoutTypeExercise {
+  id            String  @id @default(uuid())
+  workoutTypeId String
+  exerciseId    String
+  order         Int     @default(0)
+  kg            Float?
+  reps          String?
+  sets          Int?
+  restTime      Int?
+  observation   String?
+  videoUrl      String?
+
+  workoutType WorkoutType @relation(fields: [workoutTypeId], references: [id], onDelete: Cascade)
+  exercise    Exercise    @relation(fields: [exerciseId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model WorkoutTemplate {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  isGlobal    Boolean @default(false)
+  trainerId   String?
+  trainer     User?   @relation(fields: [trainerId], references: [id])
+
+  exercises WorkoutTemplateExercise[]
+
+  createdAt DateTime @default(now())
+}
+
+model WorkoutTemplateExercise {
+  id          String  @id @default(uuid())
+  templateId  String
+  exerciseId  String
+  order       Int     @default(0)
+  kg          Float?
+  reps        String?
+  sets        Int?
+  restTime    Int?
+  observation String?
+  videoUrl    String?
+
+  template WorkoutTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  exercise Exercise        @relation(fields: [exerciseId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Student {
+  id         String    @id @default(uuid())
+  name       String
+  email      String?
+  trainerId  String
+  photoUrl   String?
+  status     Status    @default(ACTIVE)
+  accessCode String    @unique @default(uuid())
+  lastLogin  DateTime?
+
+  trainer     User                @relation("TrainerStudents", fields: [trainerId], references: [id])
+  workoutDays StudentWorkoutDay[]
+  history     History[]
+
+  createdAt DateTime @default(now())
+}
+
+model StudentWorkoutDay {
+  id            String @id @default(uuid())
+  studentId     String
+  workoutTypeId String
+  dayOfWeek     Int
+
+  student     Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  workoutType WorkoutType @relation(fields: [workoutTypeId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model History {
+  id            String   @id @default(uuid())
+  studentId     String
+  exerciseId    String
+  date          DateTime
+  weight        Float?
+  setsCompleted Int?
+  completed     Boolean  @default(false)
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  createdAt DateTime @default(now())
+}
