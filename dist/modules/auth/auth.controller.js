@@ -37,9 +37,14 @@ const register = async (req, res) => {
       email: user.email,
       role: user.role,
     });
-  } catch {
-    return res.status(500).json({ error: "Erro interno" });
-  }
+  } catch (error) {
+  console.error("🔥 REGISTER ERROR:", error);
+
+  return res.status(500).json({ 
+    error: "Erro interno",
+    details: error instanceof Error ? error.message : error
+  });
+}
 };
 exports.register = register;
 const login = async (req, res) => {
@@ -64,8 +69,13 @@ const login = async (req, res) => {
       tenantId: user.tenantId,
     });
     return res.json({ token, role: user.role, name: user.name, id: user.id });
-  } catch {
-    return res.status(500).json({ error: "Erro interno" });
+  } catch (error) {
+    console.error("🔥ERROR:", error);
+
+    return res.status(500).json({
+      error: "Erro interno",
+      details: error instanceof Error ? error.message : error,
+    });
   }
 };
 exports.login = login;
@@ -96,7 +106,7 @@ const studentLogin = async (req, res) => {
       id: student.id,
     });
   } catch (error) {
-    console.error("LOGIN ERROR:", error);
+    console.error("🔥 LOGIN ERROR:", error);
 
     return res.status(500).json({
       error: "Erro interno",
@@ -135,8 +145,13 @@ const getMe = async (req, res) => {
       },
     });
     return res.json(user);
-  } catch {
-    return res.status(500).json({ error: "Erro interno" });
+  } catch (error) {
+    console.error("🔥 LOGIN ERROR:", error);
+
+    return res.status(500).json({
+      error: "Erro interno",
+      details: error instanceof Error ? error.message : error,
+    });
   }
 };
 exports.getMe = getMe;
@@ -158,8 +173,13 @@ const changePassword = async (req, res) => {
       data: { password: hashed },
     });
     return res.json({ success: true });
-  } catch {
-    return res.status(500).json({ error: "Erro interno" });
+  } catch (error) {
+    console.error("🔥 ERROR:", error);
+
+    return res.status(500).json({
+      error: "Erro interno",
+      details: error instanceof Error ? error.message : error,
+    });
   }
 };
 exports.changePassword = changePassword;
