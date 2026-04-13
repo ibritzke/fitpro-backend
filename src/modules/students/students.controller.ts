@@ -96,6 +96,37 @@ export const setStudentPin = async (req: any, res: Response) => {
   }
 };
 
+export const updateStudent = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params as { id: string };
+    const { name, email } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: "Nome é obrigatório" });
+    }
+
+    const student = await prisma.student.findFirst({
+      where: {
+        id,
+        trainerId: req.user.id,
+      },
+    });
+
+    if (!student) {
+      return res.status(404).json({ error: "Aluno não encontrado" });
+    }
+
+    const updated = await prisma.student.update({
+      where: { id },
+      data: { name, email },
+    });
+
+    return res.json(updated);
+  } catch {
+    return res.status(500).json({ error: "Erro ao editar aluno" });
+  }
+};
+
 export const toggleStudentStatus = async (req: any, res: Response) => {
   try {
     const { id } = req.params as { id: string };
