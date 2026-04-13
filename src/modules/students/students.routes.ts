@@ -19,5 +19,6 @@ router.get("/:id", getStudentById);
 router.post("/:id/photo", upload.single("photo"), uploadStudentPhoto);
 router.patch("/:id/pin", setStudentPin);
 router.patch("/:id/status", toggleStudentStatus);
+router.patch("/:id", authMiddleware, updateStudent);
 
 export default router;
