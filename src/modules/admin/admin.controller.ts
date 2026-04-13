@@ -164,6 +164,33 @@ export const updateTrainer = async (req: any, res: Response) => {
     return res.status(500).json({ error: "Erro ao editar personal" });
   }
 };
+
+export const updateTrainerPassword = async (req: any, res: Response) => {export const updateTrainerPassword = async ( try {
+    if (req.user.role !== Role.ADMIN) {
+      return res.status(403).json({ error: "Sem permissão" });
+    }
+
+    const { id } = req.params as { id: string };
+    const { password } = req.body;
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ error: "Senha inválida" });
+    }
+
+    const hashed = await hashPassword(password);
+
+    await prisma.user.update({
+      where: { id },
+      data: { password: hashed },
+    });
+
+    return res.json({ success: true });
+  } catch {
+    return res.status(500).json({ error: "Erro ao atualizar senha" });
+  }
+};
+
+
 export const uploadTrainerLogo = async (req: any, res: Response) => {
   try {
     const { id } = req.params as { id: string };
