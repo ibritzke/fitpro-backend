@@ -21,4 +21,8 @@ router.post("/trainers", createTrainer);
 router.patch("/trainers/:id/status", toggleTrainerStatus);
 router.post("/trainers/:id/logo", upload.single("logo"), uploadTrainerLogo);
 
+router.patch("/:id", authMiddleware, updateTrainer);
+router.patch("/:id/password", authMiddleware, updateTrainerPassword);
+
+
 export default router;
