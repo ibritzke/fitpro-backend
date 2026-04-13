@@ -10,5 +10,6 @@ router.post("/", trainerOwnsStudent, assignWorkoutDay);
 router.get("/schedule/:studentId", studentSelfOnly, trainerOwnsStudent, getStudentSchedule);
 router.get("/today/:studentId", studentSelfOnly, getTodayWorkout);
 router.delete("/:id", removeWorkoutDay);
+router.post("/complete", completeWorkout)
 
 export default router;
