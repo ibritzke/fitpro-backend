@@ -92,3 +92,48 @@ export const removeWorkoutDay = async (req: any, res: Response) => {
     return res.status(500).json({ error: "Erro ao remover treino" });
   }
 };
+
+
+export const completeWorkout = async (req: any, res: Response) => {
+  try {
+    const studentId = req.user.id;
+    const { workoutTypeId } = req.body;
+
+    if (!workoutTypeId) {
+      return res.status(400).json({ error: "Treino inválido" });
+    }
+
+    // evita duplicar treino no mesmo dia
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const alreadyDone = await prisma.history.findFirst({
+      where: {
+        studentId,
+        workoutId: workoutTypeId,
+        createdAt: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+    });
+
+    if (alreadyDone) {
+      return res.status(400).json({ error: "Treino já marcado hoje" });
+    }
+
+    await prisma.history.create({
+      data: {
+        studentId,
+        workoutId: workoutTypeId,
+      },
+    });
+
+    return res.status(201).json({ success: true });
+  } catch (error) {
+    return res.status(500).json({ error: "Erro ao marcar treino" });
+  }
+};
