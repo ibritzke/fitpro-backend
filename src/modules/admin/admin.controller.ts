@@ -124,7 +124,46 @@ export const toggleTrainerStatus = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Erro ao atualizar status" });
   }
 };
+export const updateTrainer = async (req: any, res: Response) => {
+  try {
+    if (req.user.role !== Role.ADMIN) {
+      return res.status(403).json({ error: "Sem permissão" });
+    }
 
+    const { id } = req.params as { id: string };
+    const { name, email } = req.body;
+
+    if (!name || !email) {
+      return res.status(400).json({ error: "Nome e email são obrigatórios" });
+    }
+
+    const existing = await prisma.user.findFirst({
+      where: {
+        email,
+        NOT: { id },
+      },
+    });
+
+    if (existing) {
+      return res.status(400).json({ error: "Email já em uso" });
+    }
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: { name, email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        status: true,
+      },
+    });
+
+    return res.json(updated);
+  } catch {
+    return res.status(500).json({ error: "Erro ao editar personal" });
+  }
+};
 export const uploadTrainerLogo = async (req: any, res: Response) => {
   try {
     const { id } = req.params as { id: string };
