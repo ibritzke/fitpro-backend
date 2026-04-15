@@ -6,6 +6,8 @@ import {
   toggleTrainerStatus,
   uploadTrainerLogo,
   deleteTrainer,
+  updateTrainer,
+  updateTrainerPassword,
 } from "./admin.controller";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import { requireRole } from "../../middlewares/role.middleware";

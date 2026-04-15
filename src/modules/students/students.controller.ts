@@ -156,6 +156,9 @@ export const deleteStudent = async (req: any, res: Response) => {
 
     if (!student) return res.status(404).json({ error: "Aluno não encontrado" });
 
+    await prisma.studentWorkoutDay.deleteMany({ where: { studentId: id } });
+    await prisma.history.deleteMany({ where: { studentId: id } });
+
     await prisma.student.delete({
       where: { id },
     });

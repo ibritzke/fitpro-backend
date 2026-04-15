@@ -168,7 +168,8 @@ export const updateTrainer = async (req: any, res: Response) => {
   }
 };
 
-export const updateTrainerPassword = async (req: any, res: Response) => {export const updateTrainerPassword = async ( try {
+export const updateTrainerPassword = async (req: any, res: Response) => {
+  try {
     if (req.user.role !== Role.ADMIN) {
       return res.status(403).json({ error: "Sem permissão" });
     }
@@ -222,6 +223,33 @@ export const deleteTrainer = async (req: any, res: Response) => {
     }
 
     const { id } = req.params as { id: string };
+
+    const userToErase = await prisma.user.findUnique({
+      where: { id },
+      include: {
+        students: { select: { id: true } }
+      }
+    });
+
+    if (!userToErase) return res.status(404).json({ error: "Personal não encontrado" });
+
+    // for each student, delete their workoutDays, history
+    const studentIds = userToErase.students.map((s: any) => s.id);
+    if (studentIds.length > 0) {
+      await prisma.studentWorkoutDay.deleteMany({ where: { studentId: { in: studentIds } } });
+      await prisma.history.deleteMany({ where: { studentId: { in: studentIds } } });
+    }
+
+    await prisma.workoutTypeExercise.deleteMany({ where: { workoutType: { trainerId: id } } });
+    await prisma.studentWorkoutDay.deleteMany({ where: { workoutType: { trainerId: id } } });
+    await prisma.workoutTemplateExercise.deleteMany({ where: { template: { trainerId: id } } });
+
+    await prisma.workoutTemplate.deleteMany({ where: { trainerId: id } });
+    await prisma.workoutType.deleteMany({ where: { trainerId: id } });
+    await prisma.exercise.deleteMany({ where: { trainerId: id } });
+    await prisma.subcategory.deleteMany({ where: { trainerId: id } });
+    await prisma.category.deleteMany({ where: { trainerId: id } });
+    await prisma.student.deleteMany({ where: { trainerId: id } });
 
     await prisma.user.delete({
       where: { id },

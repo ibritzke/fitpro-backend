@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { assignWorkoutDay, getStudentSchedule, getTodayWorkout, removeWorkoutDay } from "./studentWorkouts.controller";
+import { assignWorkoutDay, getStudentSchedule, getTodayWorkout, removeWorkoutDay, completeWorkout } from "./studentWorkouts.controller";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import { studentSelfOnly, trainerOwnsStudent } from "../../middlewares/student.middleware";
 
