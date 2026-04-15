@@ -5,7 +5,7 @@ import { Role, Status } from "@prisma/client";
 
 export const createTrainer = async (req: any, res: Response) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ error: "Preencha todos os campos" });
@@ -22,6 +22,7 @@ export const createTrainer = async (req: any, res: Response) => {
       data: {
         name,
         email,
+        phone,
         password: hashed,
         role: Role.TRAINER,
         tenantId: crypto.randomUUID(),
@@ -49,6 +50,7 @@ export const getTrainers = async (req: Request, res: Response) => {
         id: true,
         name: true,
         email: true,
+        phone: true,
         status: true,
         photoUrl: true,
         logoUrl: true,
@@ -131,7 +133,7 @@ export const updateTrainer = async (req: any, res: Response) => {
     }
 
     const { id } = req.params as { id: string };
-    const { name, email } = req.body;
+    const { name, email, phone } = req.body;
 
     if (!name || !email) {
       return res.status(400).json({ error: "Nome e email são obrigatórios" });
@@ -150,11 +152,12 @@ export const updateTrainer = async (req: any, res: Response) => {
 
     const updated = await prisma.user.update({
       where: { id },
-      data: { name, email },
+      data: { name, email, phone },
       select: {
         id: true,
         name: true,
         email: true,
+        phone: true,
         status: true,
       },
     });
@@ -209,5 +212,23 @@ export const uploadTrainerLogo = async (req: any, res: Response) => {
     return res.json({ logoUrl });
   } catch (error) {
     return res.status(500).json({ error: "Erro ao fazer upload" });
+  }
+};
+
+export const deleteTrainer = async (req: any, res: Response) => {
+  try {
+    if (req.user.role !== Role.ADMIN) {
+      return res.status(403).json({ error: "Sem permissão" });
+    }
+
+    const { id } = req.params as { id: string };
+
+    await prisma.user.delete({
+      where: { id },
+    });
+
+    return res.json({ success: true, message: "Personal excluído com sucesso" });
+  } catch (error) {
+    return res.status(500).json({ error: "Erro ao excluir personal" });
   }
 };

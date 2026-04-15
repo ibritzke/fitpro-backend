@@ -28,6 +28,7 @@ model User {
   status    Status    @default(ACTIVE)
   photoUrl  String?
   logoUrl   String?
+  phone     String?
   lastLogin DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -149,6 +150,7 @@ model Student {
   email      String?
   trainerId  String
   photoUrl   String?
+  phone      String?
   status     Status    @default(ACTIVE)
   accessCode String    @unique @default(uuid())
   lastLogin  DateTime?

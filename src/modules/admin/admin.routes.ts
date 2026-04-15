@@ -5,6 +5,7 @@ import {
   getDashboard,
   toggleTrainerStatus,
   uploadTrainerLogo,
+  deleteTrainer,
 } from "./admin.controller";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import { requireRole } from "../../middlewares/role.middleware";
@@ -20,6 +21,7 @@ router.get("/trainers", getTrainers);
 router.post("/trainers", createTrainer);
 router.patch("/trainers/:id/status", toggleTrainerStatus);
 router.post("/trainers/:id/logo", upload.single("logo"), uploadTrainerLogo);
+router.delete("/trainers/:id", deleteTrainer);
 
 router.patch("/:id", authMiddleware, updateTrainer);
 router.patch("/:id/password", authMiddleware, updateTrainerPassword);

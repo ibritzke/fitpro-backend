@@ -5,11 +5,11 @@ import { Status } from "@prisma/client";
 
 export const createStudent = async (req: any, res: Response) => {
   try {
-    const { name, email } = req.body;
+    const { name, email, phone } = req.body;
     if (!name) return res.status(400).json({ error: "Nome é obrigatório" });
 
     const student = await prisma.student.create({
-      data: { name, email: email || null, trainerId: req.user.id },
+      data: { name, email: email || null, phone: phone || null, trainerId: req.user.id },
     });
     return res.status(201).json(student);
   } catch (error: any) {
@@ -27,6 +27,7 @@ export const getStudents = async (req: any, res: Response) => {
         id: true,
         name: true,
         email: true,
+        phone: true,
         status: true,
         accessCode: true,
         photoUrl: true,
@@ -49,6 +50,7 @@ export const getStudentById = async (req: any, res: Response) => {
         id: true,
         name: true,
         email: true,
+        phone: true,
         status: true,
         accessCode: true,
         photoUrl: true,
@@ -99,7 +101,7 @@ export const setStudentPin = async (req: any, res: Response) => {
 export const updateStudent = async (req: any, res: Response) => {
   try {
     const { id } = req.params as { id: string };
-    const { name, email } = req.body;
+    const { name, email, phone } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: "Nome é obrigatório" });
@@ -118,7 +120,7 @@ export const updateStudent = async (req: any, res: Response) => {
 
     const updated = await prisma.student.update({
       where: { id },
-      data: { name, email },
+      data: { name, email, phone },
     });
 
     return res.json(updated);
@@ -142,5 +144,24 @@ export const toggleStudentStatus = async (req: any, res: Response) => {
     return res.json({ status: updated.status });
   } catch (error: any) {
     return res.status(500).json({ error: "Erro ao atualizar status" });
+  }
+};
+
+export const deleteStudent = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params as { id: string };
+    const student = await prisma.student.findFirst({
+      where: { id, trainerId: req.user.id },
+    });
+
+    if (!student) return res.status(404).json({ error: "Aluno não encontrado" });
+
+    await prisma.student.delete({
+      where: { id },
+    });
+
+    return res.json({ success: true, message: "Aluno excluído com sucesso" });
+  } catch (error: any) {
+    return res.status(500).json({ error: "Erro ao excluir aluno" });
   }
 };
