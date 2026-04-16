@@ -8,6 +8,7 @@ import {
   toggleStudentStatus,
   updateStudent,
   deleteStudent,
+  renewStudent,
 } from "./students.controller";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import { upload } from "../../config/upload/multer";
@@ -21,6 +22,7 @@ router.get("/:id", getStudentById);
 router.post("/:id/photo", upload.single("photo"), uploadStudentPhoto);
 router.patch("/:id/pin", setStudentPin);
 router.patch("/:id/status", toggleStudentStatus);
+router.patch("/:id/renew", renewStudent);
 router.patch("/:id", authMiddleware, updateStudent);
 router.delete("/:id", authMiddleware, deleteStudent);
 

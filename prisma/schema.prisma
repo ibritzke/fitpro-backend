@@ -153,6 +153,7 @@ model Student {
   phone      String?
   status     Status    @default(ACTIVE)
   accessCode String    @unique @default(uuid())
+  expiresAt  DateTime?
   lastLogin  DateTime?
 
   trainer     User                @relation("TrainerStudents", fields: [trainerId], references: [id])

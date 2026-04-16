@@ -30,6 +30,7 @@ export const getStudents = async (req: any, res: Response) => {
         phone: true,
         status: true,
         accessCode: true,
+        expiresAt: true,
         photoUrl: true,
         createdAt: true,
       },
@@ -53,6 +54,7 @@ export const getStudentById = async (req: any, res: Response) => {
         phone: true,
         status: true,
         accessCode: true,
+        expiresAt: true,
         photoUrl: true,
         createdAt: true,
       },
@@ -101,7 +103,7 @@ export const setStudentPin = async (req: any, res: Response) => {
 export const updateStudent = async (req: any, res: Response) => {
   try {
     const { id } = req.params as { id: string };
-    const { name, email, phone } = req.body;
+    const { name, email, phone, expiresAt } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: "Nome é obrigatório" });
@@ -120,12 +122,51 @@ export const updateStudent = async (req: any, res: Response) => {
 
     const updated = await prisma.student.update({
       where: { id },
-      data: { name, email, phone },
+      data: { 
+        name, 
+        email, 
+        phone,
+        expiresAt: expiresAt ? new Date(expiresAt) : null
+      },
     });
 
     return res.json(updated);
   } catch {
     return res.status(500).json({ error: "Erro ao editar aluno" });
+  }
+};
+
+export const renewStudent = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params as { id: string };
+    const { days } = req.body;
+
+    if (!days || typeof days !== "number") {
+      return res.status(400).json({ error: "Dias para renovação inválidos" });
+    }
+
+    const student = await prisma.student.findFirst({
+      where: { id, trainerId: req.user.id },
+    });
+
+    if (!student) return res.status(404).json({ error: "Aluno não encontrado" });
+
+    // Determine the baseline date to add days to. 
+    // If it's already expired or null, use today. If it's still valid in the future, add to the existing expiresAt.
+    const baseline = (student.expiresAt && new Date(student.expiresAt) > new Date()) 
+      ? new Date(student.expiresAt) 
+      : new Date();
+
+    baseline.setDate(baseline.getDate() + days);
+
+    const updated = await prisma.student.update({
+      where: { id },
+      data: { expiresAt: baseline },
+    });
+
+    return res.json({ success: true, expiresAt: updated.expiresAt });
+  } catch (error: any) {
+    return res.status(500).json({ error: "Erro ao renovar aluno" });
   }
 };
 

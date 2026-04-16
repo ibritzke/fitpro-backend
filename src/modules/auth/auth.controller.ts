@@ -74,6 +74,10 @@ export const studentLogin = async (req: Request, res: Response) => {
     if (student.status === Status.INACTIVE)
       return res.status(403).json({ error: "Conta inativa" });
 
+    if (student.expiresAt && new Date(student.expiresAt) < new Date()) {
+      return res.status(403).json({ error: "Acesso expirado. Fale com seu personal." });
+    }
+
     await prisma.student.update({
       where: { id: student.id },
       data: { lastLogin: new Date() },
