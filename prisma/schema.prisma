@@ -58,7 +58,7 @@ model Subcategory {
   name       String
   categoryId String
   trainerId  String
-  category   Category @relation(fields: [categoryId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   trainer    User     @relation(fields: [trainerId], references: [id])
 
   exercises Exercise[]
@@ -73,8 +73,8 @@ model Exercise {
   subcategoryId String?
   trainerId     String
 
-  category    Category     @relation(fields: [categoryId], references: [id])
-  subcategory Subcategory? @relation(fields: [subcategoryId], references: [id])
+  category    Category     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  subcategory Subcategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
   trainer     User         @relation(fields: [trainerId], references: [id])
 
   workoutTypeExercises    WorkoutTypeExercise[]
@@ -108,7 +108,7 @@ model WorkoutTypeExercise {
   videoUrl      String?
 
   workoutType WorkoutType @relation(fields: [workoutTypeId], references: [id], onDelete: Cascade)
-  exercise    Exercise    @relation(fields: [exerciseId], references: [id])
+  exercise    Exercise    @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 }
@@ -139,7 +139,7 @@ model WorkoutTemplateExercise {
   videoUrl    String?
 
   template WorkoutTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  exercise Exercise        @relation(fields: [exerciseId], references: [id])
+  exercise Exercise        @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 }
@@ -169,7 +169,7 @@ model StudentWorkoutDay {
   dayOfWeek     Int
 
   student     Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  workoutType WorkoutType @relation(fields: [workoutTypeId], references: [id])
+  workoutType WorkoutType @relation(fields: [workoutTypeId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 }
@@ -183,7 +183,7 @@ model History {
   setsCompleted Int?
   completed     Boolean  @default(false)
 
-  student Student @relation(fields: [studentId], references: [id])
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 }
