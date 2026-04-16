@@ -103,6 +103,16 @@ export const completeWorkout = async (req: any, res: Response) => {
       return res.status(400).json({ error: "Treino inválido" });
     }
 
+    // Busca todos os exercícios do workoutType
+    const workoutType = await prisma.workoutType.findUnique({
+      where: { id: workoutTypeId },
+      include: { exercises: { include: { exercise: true } } },
+    });
+
+    if (!workoutType || workoutType.exercises.length === 0) {
+      return res.status(404).json({ error: "Treino não encontrado ou sem exercícios" });
+    }
+
     // evita duplicar treino no mesmo dia
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
@@ -110,11 +120,14 @@ export const completeWorkout = async (req: any, res: Response) => {
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
+    const firstExerciseId = workoutType.exercises[0].exerciseId;
+
     const alreadyDone = await prisma.history.findFirst({
       where: {
         studentId,
-        workoutId: workoutTypeId,
-        createdAt: {
+        exerciseId: firstExerciseId,
+        completed: true,
+        date: {
           gte: startOfDay,
           lte: endOfDay,
         },
@@ -125,11 +138,15 @@ export const completeWorkout = async (req: any, res: Response) => {
       return res.status(400).json({ error: "Treino já marcado hoje" });
     }
 
-    await prisma.history.create({
-      data: {
+    // Cria um registro de histórico por exercício
+    const today = new Date();
+    await prisma.history.createMany({
+      data: workoutType.exercises.map((wte) => ({
         studentId,
-        workoutId: workoutTypeId,
-      },
+        exerciseId: wte.exerciseId,
+        date: today,
+        completed: true,
+      })),
     });
 
     return res.status(201).json({ success: true });
