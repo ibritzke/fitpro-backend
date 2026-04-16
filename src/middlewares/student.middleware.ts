@@ -21,7 +21,10 @@ export const studentSelfOnly = async (req: any, res: Response, next: NextFunctio
 // Garante que trainer só acessa alunos que são seus
 export const trainerOwnsStudent = async (req: any, res: Response, next: NextFunction) => {
   try {
+    // Admin acessa tudo
     if (req.user.role === "ADMIN") return next();
+    // Aluno já é validado pelo studentSelfOnly — passa direto
+    if (req.user.role === "STUDENT") return next();
 
     const studentId = req.params.studentId || req.body.studentId;
     if (!studentId) return next();
