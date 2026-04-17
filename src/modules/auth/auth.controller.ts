@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { Request, Response } from "express";
 import { prisma } from "../../config/database";
 import { hashPassword, comparePassword } from "../../utils/hash";
