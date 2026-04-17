@@ -47,19 +47,21 @@ export const login = async (req: Request, res: Response) => {
     const valid = await comparePassword(password, user.password);
     if (!valid) return res.status(400).json({ error: "Senha incorreta" });
 
-    // Atualiza lastLogin
+    /* Temporariamente removido para diagnosticar erro 500
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLogin: new Date() },
     });
+    */
 
     const token = generateToken({
       id: user.id, role: user.role, tenantId: user.tenantId,
     });
 
     return res.json({ token, role: user.role, name: user.name, id: user.id });
-  } catch {
-    return res.status(500).json({ error: "Erro interno" });
+  } catch (error: any) {
+    console.error("Login Error:", error);
+    return res.status(500).json({ error: "Erro interno", message: error.message });
   }
 };
 
