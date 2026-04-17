@@ -21,7 +21,8 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-app.options("*", cors(corsOptions)); // <- ESSENCIAL
+// app.options("*", cors(corsOptions)); // Removido: app.use(cors()) já trata OPTIONS no Express 5
+
 
 app.use(express.json());
 
