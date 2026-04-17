@@ -1,41 +1,27 @@
-/*
-  Warnings:
+-- CreateEnum
+CREATE TYPE "Role" AS ENUM ('ADMIN', 'TRAINER', 'STUDENT');
 
-  - You are about to drop the column `category` on the `Exercise` table. All the data in the column will be lost.
-  - You are about to drop the column `tenantId` on the `Exercise` table. All the data in the column will be lost.
-  - You are about to drop the column `videoUrl` on the `Exercise` table. All the data in the column will be lost.
-  - You are about to drop the `Workout` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `WorkoutExercise` table. If the table is not empty, all the data it contains will be lost.
-  - Added the required column `categoryId` to the `Exercise` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `trainerId` to the `Exercise` table without a default value. This is not possible if the table is not empty.
+-- CreateEnum
+CREATE TYPE "Status" AS ENUM ('ACTIVE', 'INACTIVE');
 
-*/
--- DropForeignKey
-ALTER TABLE "Workout" DROP CONSTRAINT "Workout_studentId_fkey";
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "role" "Role" NOT NULL,
+    "tenantId" TEXT,
+    "status" "Status" NOT NULL DEFAULT 'ACTIVE',
+    "photoUrl" TEXT,
+    "logoUrl" TEXT,
+    "phone" TEXT,
+    "lastLogin" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
--- DropForeignKey
-ALTER TABLE "WorkoutExercise" DROP CONSTRAINT "WorkoutExercise_exerciseId_fkey";
-
--- DropForeignKey
-ALTER TABLE "WorkoutExercise" DROP CONSTRAINT "WorkoutExercise_workoutId_fkey";
-
--- AlterTable
-ALTER TABLE "Exercise" DROP COLUMN "category",
-DROP COLUMN "tenantId",
-DROP COLUMN "videoUrl",
-ADD COLUMN     "categoryId" TEXT NOT NULL,
-ADD COLUMN     "subcategoryId" TEXT,
-ADD COLUMN     "trainerId" TEXT NOT NULL;
-
--- AlterTable
-ALTER TABLE "History" ADD COLUMN     "setsCompleted" INTEGER,
-ALTER COLUMN "completed" SET DEFAULT false;
-
--- DropTable
-DROP TABLE "Workout";
-
--- DropTable
-DROP TABLE "WorkoutExercise";
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "Category" (
@@ -56,6 +42,18 @@ CREATE TABLE "Subcategory" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Subcategory_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Exercise" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "categoryId" TEXT NOT NULL,
+    "subcategoryId" TEXT,
+    "trainerId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Exercise_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -115,6 +113,23 @@ CREATE TABLE "WorkoutTemplateExercise" (
 );
 
 -- CreateTable
+CREATE TABLE "Student" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT,
+    "trainerId" TEXT NOT NULL,
+    "photoUrl" TEXT,
+    "phone" TEXT,
+    "status" "Status" NOT NULL DEFAULT 'ACTIVE',
+    "accessCode" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3),
+    "lastLogin" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Student_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "StudentWorkoutDay" (
     "id" TEXT NOT NULL,
     "studentId" TEXT NOT NULL,
@@ -125,17 +140,37 @@ CREATE TABLE "StudentWorkoutDay" (
     CONSTRAINT "StudentWorkoutDay_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "History" (
+    "id" TEXT NOT NULL,
+    "studentId" TEXT NOT NULL,
+    "exerciseId" TEXT NOT NULL,
+    "date" TIMESTAMP(3) NOT NULL,
+    "weight" DOUBLE PRECISION,
+    "setsCompleted" INTEGER,
+    "completed" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "History_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Student_accessCode_key" ON "Student"("accessCode");
+
 -- AddForeignKey
 ALTER TABLE "Category" ADD CONSTRAINT "Category_trainerId_fkey" FOREIGN KEY ("trainerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Subcategory" ADD CONSTRAINT "Subcategory_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Subcategory" ADD CONSTRAINT "Subcategory_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Subcategory" ADD CONSTRAINT "Subcategory_trainerId_fkey" FOREIGN KEY ("trainerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Exercise" ADD CONSTRAINT "Exercise_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Exercise" ADD CONSTRAINT "Exercise_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Exercise" ADD CONSTRAINT "Exercise_subcategoryId_fkey" FOREIGN KEY ("subcategoryId") REFERENCES "Subcategory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -150,7 +185,7 @@ ALTER TABLE "WorkoutType" ADD CONSTRAINT "WorkoutType_trainerId_fkey" FOREIGN KE
 ALTER TABLE "WorkoutTypeExercise" ADD CONSTRAINT "WorkoutTypeExercise_workoutTypeId_fkey" FOREIGN KEY ("workoutTypeId") REFERENCES "WorkoutType"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WorkoutTypeExercise" ADD CONSTRAINT "WorkoutTypeExercise_exerciseId_fkey" FOREIGN KEY ("exerciseId") REFERENCES "Exercise"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "WorkoutTypeExercise" ADD CONSTRAINT "WorkoutTypeExercise_exerciseId_fkey" FOREIGN KEY ("exerciseId") REFERENCES "Exercise"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "WorkoutTemplate" ADD CONSTRAINT "WorkoutTemplate_trainerId_fkey" FOREIGN KEY ("trainerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -159,10 +194,16 @@ ALTER TABLE "WorkoutTemplate" ADD CONSTRAINT "WorkoutTemplate_trainerId_fkey" FO
 ALTER TABLE "WorkoutTemplateExercise" ADD CONSTRAINT "WorkoutTemplateExercise_templateId_fkey" FOREIGN KEY ("templateId") REFERENCES "WorkoutTemplate"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WorkoutTemplateExercise" ADD CONSTRAINT "WorkoutTemplateExercise_exerciseId_fkey" FOREIGN KEY ("exerciseId") REFERENCES "Exercise"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "WorkoutTemplateExercise" ADD CONSTRAINT "WorkoutTemplateExercise_exerciseId_fkey" FOREIGN KEY ("exerciseId") REFERENCES "Exercise"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Student" ADD CONSTRAINT "Student_trainerId_fkey" FOREIGN KEY ("trainerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "StudentWorkoutDay" ADD CONSTRAINT "StudentWorkoutDay_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "StudentWorkoutDay" ADD CONSTRAINT "StudentWorkoutDay_workoutTypeId_fkey" FOREIGN KEY ("workoutTypeId") REFERENCES "WorkoutType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "StudentWorkoutDay" ADD CONSTRAINT "StudentWorkoutDay_workoutTypeId_fkey" FOREIGN KEY ("workoutTypeId") REFERENCES "WorkoutType"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "History" ADD CONSTRAINT "History_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE CASCADE ON UPDATE CASCADE;
