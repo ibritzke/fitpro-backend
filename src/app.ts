@@ -22,11 +22,17 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // app.options("*", cors(corsOptions)); // Removido: app.use(cors()) já trata OPTIONS no Express 5
-
-
 app.use(express.json());
 
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "online",
+    api: "FitPro"
+  });
+});
+
 
 app.use(routes);
 

@@ -11,11 +11,8 @@ import templateRoutes from "./modules/templates/templates.routes";
 import studentWorkoutRoutes from "./modules/studentWorkouts/studentWorkouts.routes";
 import historyRoutes from "./modules/history/history.routes";
 import { getTrainerPublicInfo } from "./modules/users/users.controller";
-import app from "./app";
 
-app.get("/", (req, res) => {
-  res.status(200).json({ status: "FitPro API Online" });
-});
+
 const router = Router();
 router.use("/auth", authRoutes);
 router.use("/admin", adminRoutes);
